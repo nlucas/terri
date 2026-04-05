@@ -28,7 +28,7 @@ export default async function GuidePage({ params }: PageProps) {
   // Read guide content — file lives at ../../content/ relative to Next.js root (vinora/)
   let html = '';
   try {
-    const contentPath = join(process.cwd(), '..', 'content', `${section.contentFile}.md`);
+    const contentPath = join(process.cwd(), 'content', `${section.contentFile}.md`);
     const raw = readFileSync(contentPath, 'utf-8');
     html = markdownToHtml(raw);
   } catch {

@@ -39,7 +39,7 @@ export default async function SectionPage({ params, searchParams }: PageProps) {
   let guideHtml = '<p>Guide coming soon.</p>';
   try {
     const raw = readFileSync(
-      join(process.cwd(), '..', 'content', `${section.contentFile}.md`),
+      join(process.cwd(), 'content', `${section.contentFile}.md`),
       'utf-8'
     );
     guideHtml = markdownToHtml(raw);
