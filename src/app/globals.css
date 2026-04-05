@@ -1,0 +1,127 @@
+/* ── Google Fonts — must be first ────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Fraunces:ital,opsz,wght,WONK@0,9..144,100..900,0..1;1,9..144,100..900,0..1&display=swap');
+
+@import "tailwindcss";
+
+/* ── Design Tokens v3 — West Village ─────────────────────────── */
+@theme {
+  /* Fonts */
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body:    'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Backgrounds — warm linen, never stark white */
+  --color-bg-base:    #F4EDE3;
+  --color-bg-subtle:  #EDE3D6;
+  --color-bg-surface: #FDF8F3;
+  --color-bg-overlay: #FFF9F5;
+
+  /* Primary — deep rose-berry */
+  --color-primary:       #7C3A52;
+  --color-primary-dark:  #5E2B3D;
+  --color-primary-light: #A45E74;
+  --color-primary-muted: #F2E0E6;
+
+  /* Espresso — warm dark brown */
+  --color-espresso:      #2C1A10;
+  --color-espresso-mid:  #4A3020;
+  --color-espresso-soft: #7A5A44;
+
+  /* Honey — candlelight amber */
+  --color-honey:       #C49040;
+  --color-honey-dark:  #9E7030;
+  --color-honey-light: #DFB870;
+  --color-honey-muted: #F7EECF;
+
+  /* Forest — West Village shutters */
+  --color-forest:       #3D5948;
+  --color-forest-dark:  #2A3F33;
+  --color-forest-light: #6A9478;
+  --color-forest-muted: #DCF0E4;
+
+  /* Blush */
+  --color-blush:       #D4987C;
+  --color-blush-dark:  #B07055;
+  --color-blush-light: #EABC9E;
+  --color-blush-muted: #FBF0E8;
+
+  /* Text */
+  --color-text-primary:    #2C1A10;
+  --color-text-secondary:  #6B4830;
+  --color-text-muted:      #A08060;
+  --color-text-inverse:    #FDF8F3;
+  --color-text-inverse-dim: #E8D8C8;
+
+  /* Borders */
+  --color-border-subtle:  #E4D4C0;
+  --color-border-default: #D0B89A;
+  --color-border-strong:  #B89A7A;
+
+  /* Section Identity */
+  --color-section-1: #C47A6A;
+  --color-section-2: #7C3A52;
+  --color-section-3: #2C1A10;
+  --color-section-4: #3D5948;
+  --color-section-5: #C49040;
+  --color-section-6: #C490A8;
+
+  /* Border radius */
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-card: 20px;
+  --radius-pill: 9999px;
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+/* ── Fraunces variation helpers ───────────────────────────────── */
+.fraunces-display {
+  font-family: var(--font-heading);
+  font-variation-settings: 'opsz' 144, 'WONK' 0;
+}
+.fraunces-card {
+  font-family: var(--font-heading);
+  font-variation-settings: 'opsz' 72, 'WONK' 0;
+}
+.fraunces-italic {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-variation-settings: 'opsz' 144, 'WONK' 1;
+}
+
+/* ── Warm shadows ─────────────────────────────────────────────── */
+.shadow-warm-sm  { box-shadow: 0 1px 3px rgba(44,26,16,0.08), 0 1px 2px rgba(44,26,16,0.05); }
+.shadow-warm-md  { box-shadow: 0 4px 16px rgba(44,26,16,0.10), 0 2px 6px rgba(44,26,16,0.07); }
+.shadow-warm-lg  { box-shadow: 0 8px 32px rgba(44,26,16,0.12), 0 4px 12px rgba(44,26,16,0.08); }
+.shadow-warm-card{ box-shadow: 0 2px 12px rgba(44,26,16,0.08), 0 1px 4px rgba(44,26,16,0.05); }
+.shadow-primary  { box-shadow: 0 4px 20px rgba(124,58,82,0.30), 0 2px 8px rgba(124,58,82,0.15); }
+
+/* ── Mobile app shell ─────────────────────────────────────────── */
+.app-shell {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  background: var(--color-bg-base);
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
+::-webkit-scrollbar-thumb { background: var(--color-border-default); border-radius: 999px; }
+
+/* ── Hide scrollbar (horizontal filter chips, etc.) ──────────── */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
