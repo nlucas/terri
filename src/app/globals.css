@@ -125,3 +125,145 @@ body {
 /* ── Hide scrollbar (horizontal filter chips, etc.) ──────────── */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ═══════════════════════════════════════════════════════════════
+   LOGIN PAGE — Atmospheric dark experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Animated atmosphere orbs */
+.login-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-orb-1 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(139, 28, 28, 0.55) 0%, transparent 70%);
+  top: -120px;
+  left: -120px;
+  filter: blur(72px);
+  animation: orb-drift-1 20s ease-in-out infinite;
+}
+
+.login-orb-2 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(196, 144, 64, 0.38) 0%, transparent 70%);
+  bottom: 60px;
+  right: -80px;
+  filter: blur(64px);
+  animation: orb-drift-2 25s ease-in-out infinite;
+}
+
+.login-orb-3 {
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(90, 20, 70, 0.45) 0%, transparent 70%);
+  bottom: 200px;
+  left: -40px;
+  filter: blur(56px);
+  animation: orb-drift-3 17s ease-in-out infinite;
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(50px, 40px) scale(1.06); }
+  66%       { transform: translate(-25px, 60px) scale(0.94); }
+}
+
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-40px, -50px) scale(1.09); }
+  66%       { transform: translate(25px, -25px) scale(0.93); }
+}
+
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(35px, -50px) scale(1.12); }
+}
+
+/* Grain overlay for texture */
+.login-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Entrance animations */
+.login-fade-up {
+  animation: login-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.login-fade-up-delay {
+  opacity: 0;
+  animation: login-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+}
+
+@keyframes login-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero wordmark */
+.login-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(196, 144, 64, 0.85);
+  margin-bottom: 12px;
+}
+
+.login-wordmark {
+  font-size: clamp(72px, 22vw, 96px);
+  font-weight: 900;
+  color: white;
+  letter-spacing: -4px;
+  line-height: 1;
+  margin-bottom: 20px;
+  text-shadow: 0 0 80px rgba(196, 144, 64, 0.15);
+}
+
+.login-rule {
+  width: 44px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(196,144,64,0.9), rgba(196,144,64,0.2));
+  margin: 0 auto 18px;
+  border-radius: 2px;
+}
+
+.login-tagline {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.01em;
+  font-style: italic;
+}
+
+/* Glass morphism card */
+.login-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 24px;
+  padding: 28px;
+}
+
+/* Input focus glow on dark background */
+.login-input:focus {
+  border-color: rgba(196, 144, 64, 0.5) !important;
+  background: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 0 0 3px rgba(196, 144, 64, 0.08);
+}
+
+.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}

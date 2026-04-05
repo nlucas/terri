@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { getUserBottles, getCompletedSections } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
@@ -31,39 +32,7 @@ export default async function LearnPage() {
       <div className="px-4 pt-12 pb-4">
 
         {/* ── Header ─────────────────────────────────────────── */}
-        <div className="mb-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p
-                className="text-[11px] font-semibold tracking-widest uppercase mb-1"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Your Curriculum
-              </p>
-              <h1
-                className="fraunces-display font-bold leading-tight"
-                style={{ fontSize: 34, color: 'var(--color-text-primary)' }}
-              >
-                Learn Wine.
-              </h1>
-            </div>
-            {/* Revisit intro — always accessible */}
-            <Link
-              href="/learn/intro"
-              className="mt-1 flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-full shrink-0"
-              style={{
-                background: 'var(--color-bg-surface)',
-                border: '1px solid var(--color-border-subtle)',
-                color: 'var(--color-text-muted)',
-              }}
-            >
-              📖 Intro
-            </Link>
-          </div>
-          <p className="text-[14px] mt-1.5" style={{ color: 'var(--color-text-secondary)' }}>
-            Complete all 6 sections to unlock the advanced track.
-          </p>
-        </div>
+        <LearnHeader user={user} completedCount={completedSections.length} />
 
         {/* ── Progress bar ───────────────────────────────────── */}
         <FoundationalProgress completedCount={completedSections.length} />
@@ -108,6 +77,76 @@ export default async function LearnPage() {
 
       </div>
     </AppShell>
+  );
+}
+
+function LearnHeader({ user, completedCount }: { user: User; completedCount: number }) {
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning' :
+    hour < 17 ? 'Good afternoon' :
+                'Good evening';
+
+  const firstName = user.user_metadata?.full_name?.split(' ')[0]
+    || user.email?.split('@')[0]
+    || 'there';
+
+  const encouragement =
+    completedCount === 0 ? 'Your palate is waiting.' :
+    completedCount < 3   ? 'You\'re finding your feet.' :
+    completedCount < 6   ? 'Your palate is developing.' :
+                           'The foundational track is yours.';
+
+  return (
+    <div className="mb-6">
+      {/* Dark hero band */}
+      <div
+        className="rounded-2xl px-5 pt-5 pb-5 mb-5 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(145deg, #2C1A10 0%, #1C0A06 100%)',
+        }}
+      >
+        {/* Decorative large T */}
+        <span
+          className="absolute -right-3 -top-5 fraunces-display font-black select-none pointer-events-none"
+          style={{ fontSize: 120, lineHeight: 1, color: 'rgba(255,255,255,0.04)', letterSpacing: -4 }}
+        >
+          T
+        </span>
+
+        <p
+          className="text-[10px] font-semibold tracking-widest uppercase mb-1"
+          style={{ color: 'rgba(196,144,64,0.7)' }}
+        >
+          {greeting}
+        </p>
+        <h1
+          className="fraunces-display font-bold leading-tight"
+          style={{ fontSize: 30, color: 'white' }}
+        >
+          {firstName}.
+        </h1>
+        <p
+          className="text-[13px] mt-1 fraunces-italic"
+          style={{ color: 'rgba(255,255,255,0.42)', fontStyle: 'italic' }}
+        >
+          {encouragement}
+        </p>
+
+        {/* Intro pill */}
+        <Link
+          href="/learn/intro"
+          className="absolute top-4 right-4 flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full"
+          style={{
+            background: 'rgba(255,255,255,0.10)',
+            color: 'rgba(255,255,255,0.55)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          📖 Intro
+        </Link>
+      </div>
+    </div>
   );
 }
 
