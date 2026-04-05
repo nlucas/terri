@@ -9,7 +9,7 @@ export function IntroCard() {
 
   useEffect(() => {
     setMounted(true);
-    setComplete(localStorage.getItem('vinora_intro_complete') === '1');
+    setComplete(localStorage.getItem('terri_intro_complete') === '1');
   }, []);
 
   // Avoid hydration mismatch — render neutral state on server

@@ -46,8 +46,8 @@ export function ResetJourneySheet({ open, onClose }: Props) {
 
       // Clear all localStorage progress flags
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('vinora_onboarded');
-        localStorage.removeItem('vinora_intro_complete');
+        localStorage.removeItem('terri_onboarded');
+        localStorage.removeItem('terri_intro_complete');
       }
 
       setStep('done');

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Vinora — Learn Wine the Fun Way',
+  title: 'Terri — Learn Wine the Fun Way',
   description: 'A structured, opinionated wine curriculum. Taste your way through 6 sections and actually learn.',
   manifest: '/manifest.json',
 };

@@ -262,7 +262,7 @@ export function ProfileView({ data }: { data: ProfileData }) {
   const [resetOpen, setResetOpen] = useState(false);
 
   useEffect(() => {
-    setIntroComplete(localStorage.getItem('vinora_intro_complete') === '1');
+    setIntroComplete(localStorage.getItem('terri_intro_complete') === '1');
   }, []);
 
   const { name, email, createdAt, bottles, completedSections, uniqueCountries } = data;
@@ -537,7 +537,7 @@ export function ProfileView({ data }: { data: ProfileData }) {
           className="text-center text-[11px] mt-3 mb-2"
           style={{ color: 'var(--color-text-muted)' }}
         >
-          Vinora · Foundational Track v1.0
+          Terri · Foundational Track v1.0
         </p>
 
       </div>

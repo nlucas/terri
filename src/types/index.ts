@@ -1,4 +1,4 @@
-// ─── Core domain types for Vinora ────────────────────────────────
+// ─── Core domain types for Terri ────────────────────────────────
 
 export type SectionId = 1 | 2 | 3 | 4 | 5 | 6;
 

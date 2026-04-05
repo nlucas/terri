@@ -25,7 +25,7 @@ export default async function GuidePage({ params }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Read guide content — file lives at ../../content/ relative to Next.js root (vinora/)
+  // Read guide content — file lives at content/ relative to Next.js root
   let html = '';
   try {
     const contentPath = join(process.cwd(), 'content', `${section.contentFile}.md`);

@@ -12,7 +12,7 @@ export default function LoginPage() {
           className="fraunces-display font-bold"
           style={{ fontSize: 48, color: 'var(--color-text-primary)', letterSpacing: -1 }}
         >
-          Vinora
+          Terri
         </h1>
         <p className="text-[15px] mt-2" style={{ color: 'var(--color-text-muted)' }}>
           Learn wine the fun way.

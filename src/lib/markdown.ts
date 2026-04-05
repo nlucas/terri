@@ -1,5 +1,5 @@
 /**
- * Simple markdown → HTML converter for Vinora's guide content.
+ * Simple markdown → HTML converter for Terri's guide content.
  * Handles: headings, bold, italic, blockquotes, lists, HR, paragraphs.
  * Uses dangerouslySetInnerHTML — only safe because content is our own files, not user input.
  */

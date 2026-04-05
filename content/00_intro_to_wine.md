@@ -9,7 +9,7 @@ Walk into a nice restaurant and get handed a wine list. Watch as it immediately 
 
 It shouldn't be like this. Wine is fermented grape juice. It has been made by ordinary people in every culture on earth for over 8,000 years. And yet somewhere along the way, it acquired an aura of exclusivity — the hushed reverence, the impenetrable vocabulary, the anxiety about saying the wrong thing.
 
-Here's the truth: wine is not complicated. Wine *people* made it complicated. Vinora is here to undo that.
+Here's the truth: wine is not complicated. Wine *people* made it complicated. Terri is here to undo that.
 
 You don't need to memorize every French appellation or know how to identify 22 different types of oak. You need to understand a handful of core ideas, develop a sense of your own taste, and drink some great wine while you do it. That's the whole plan.
 
@@ -87,7 +87,7 @@ Everything else — awards, flowery descriptions, illustrations of chateaux — 
 
 Here's something almost nobody tells beginners: the relationship between price and quality in wine is real but non-linear. A $30 bottle is reliably better than a $10 bottle. A $100 bottle is sometimes better than a $30 bottle. But a $300 bottle is not ten times better than a $30 bottle.
 
-The sweet spot for quality-to-price is roughly **$18–$35**. In this range, you'll find genuinely excellent wines from small producers, well-made examples of classic styles, and bottles you'd happily serve to anyone. This is also where Vinora's recommendations will live for most of the foundational track.
+The sweet spot for quality-to-price is roughly **$18–$35**. In this range, you'll find genuinely excellent wines from small producers, well-made examples of classic styles, and bottles you'd happily serve to anyone. This is also where Terri's recommendations will live for most of the foundational track.
 
 Above $50, you're paying partly for scarcity, reputation, and age-worthiness. Below $15, the quality is variable but not hopeless — there are diamonds in the discount bin, and you'll learn to find them.
 
@@ -97,7 +97,7 @@ Above $50, you're paying partly for scarcity, reputation, and age-worthiness. Be
 
 You've just absorbed the most important 10% of wine knowledge. The other 90% comes from drinking.
 
-Vinora is structured around six foundational styles of wine. Each one gives you a short learning module like this one, a set of specific bottles to try, and the tools to understand what you're experiencing while you drink them. You need to try three bottles in each style before moving on.
+Terri is structured around six foundational styles of wine. Each one gives you a short learning module like this one, a set of specific bottles to try, and the tools to understand what you're experiencing while you drink them. You need to try three bottles in each style before moving on.
 
 That's it. No tests. No memorization. Just intentional drinking with a guide alongside you.
 

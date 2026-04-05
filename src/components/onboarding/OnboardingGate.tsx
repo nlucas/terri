@@ -11,7 +11,7 @@ export function OnboardingGate() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!localStorage.getItem('vinora_onboarded')) {
+    if (!localStorage.getItem('terri_onboarded')) {
       router.replace('/onboarding');
     }
   }, [router]);

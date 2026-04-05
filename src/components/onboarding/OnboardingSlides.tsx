@@ -59,7 +59,7 @@ export function OnboardingSlides() {
 
   function markOnboarded() {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('vinora_onboarded', '1');
+      localStorage.setItem('terri_onboarded', '1');
     }
   }
 
@@ -208,7 +208,7 @@ function SlideHook() {
         className="text-[11px] font-bold tracking-widest uppercase mt-6 mb-3"
         style={{ color: 'rgba(196,144,64,0.8)' }}
       >
-        Welcome to Vinora
+        Welcome to Terri
       </motion.p>
 
       <motion.h1

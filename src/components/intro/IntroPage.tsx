@@ -184,13 +184,13 @@ export function IntroPage() {
   const [justCompleted, setJustCompleted] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('vinora_intro_complete') === '1') {
+    if (localStorage.getItem('terri_intro_complete') === '1') {
       setIsComplete(true);
     }
   }, []);
 
   function markComplete() {
-    localStorage.setItem('vinora_intro_complete', '1');
+    localStorage.setItem('terri_intro_complete', '1');
     setIsComplete(true);
     setJustCompleted(true);
   }
@@ -284,7 +284,7 @@ export function IntroPage() {
           It shouldn&apos;t be like this. Wine is fermented grape juice. It has been made by ordinary people in every culture on earth for over 8,000 years. And yet somewhere along the way, it acquired an aura of exclusivity — the hushed reverence, the impenetrable vocabulary, the anxiety about saying the wrong thing.
         </P>
         <P>
-          Here&apos;s the truth: wine is not complicated. <Strong>Wine people made it complicated.</Strong> Vinora is here to undo that.
+          Here&apos;s the truth: wine is not complicated. <Strong>Wine people made it complicated.</Strong> Terri is here to undo that.
         </P>
         <P>
           You don&apos;t need to memorize every French appellation or know how to identify 22 different types of oak. You need to understand a handful of core ideas, develop a sense of your own taste, and drink some great wine while you do it. That&apos;s the whole plan.
@@ -414,7 +414,7 @@ export function IntroPage() {
               The sweet spot
             </p>
             <p className="text-[14px] leading-relaxed" style={{ color: 'var(--color-espresso-soft)' }}>
-              Roughly <Strong>$18–$35</Strong>. In this range you&apos;ll find genuinely excellent wines from small producers, well-made examples of classic styles, and bottles you&apos;d happily serve to anyone. This is also where Vinora&apos;s recommendations will live for most of the foundational track.
+              Roughly <Strong>$18–$35</Strong>. In this range you&apos;ll find genuinely excellent wines from small producers, well-made examples of classic styles, and bottles you&apos;d happily serve to anyone. This is also where Terri&apos;s recommendations will live for most of the foundational track.
             </p>
           </div>
         </div>
@@ -430,7 +430,7 @@ export function IntroPage() {
           You&apos;ve just absorbed the most important 10% of wine knowledge. The other 90% comes from drinking.
         </P>
         <P>
-          Vinora is structured around six foundational styles of wine. Each one gives you a short learning module like this one, a set of specific bottles to try, and the tools to understand what you&apos;re experiencing while you drink them. You need to try three bottles in each style before moving on.
+          Terri is structured around six foundational styles of wine. Each one gives you a short learning module like this one, a set of specific bottles to try, and the tools to understand what you&apos;re experiencing while you drink them. You need to try three bottles in each style before moving on.
         </P>
         <P>
           That&apos;s it. No tests. No memorization. Just intentional drinking with a guide alongside you.

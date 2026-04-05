@@ -204,7 +204,7 @@ Whispering Angel became one of the most recognized rosé bottles in the world fo
 
 ## Completing the Foundational Track
 
-When you finish this section — your 18th bottle — you've completed the Vinora foundational track.
+When you finish this section — your 18th bottle — you've completed the Terri foundational track.
 
 You now have a real, grounded understanding of every major style of wine. You've tasted the whole spectrum: from a delicate Beaujolais to a Napa Cabernet, from a mineral Sancerre to a buttery Chardonnay, from a Grower Champagne to a Provence rosé. Your palate has developed. Your vocabulary has expanded. And somewhere in those 18 bottles, you've started to understand who you are as a wine drinker.
 
