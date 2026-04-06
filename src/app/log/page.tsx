@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { SECTION_BY_SLUG, SECTIONS } from '@/lib/sections';
+import { SECTION_BY_SLUG } from '@/lib/sections';
 import { getNextSlotIndex } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
 import { TastingSession } from '@/components/learn/TastingSession';
@@ -23,7 +23,7 @@ export default async function LogPage({ searchParams }: PageProps) {
   if (!sectionSlug) {
     return (
       <AppShell>
-        <AdHocLogPage sections={SECTIONS} />
+        <AdHocLogPage />
       </AppShell>
     );
   }
