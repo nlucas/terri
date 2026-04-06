@@ -66,6 +66,16 @@ export function AdHocLogPage({ sections }: AdHocLogPageProps) {
           type="text"
           value={grapeInput}
           onChange={(e) => handleGrapeChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              if (detectedId) {
+                const section = sections.find(s => s.id === detectedId);
+                if (section) goToSection(section.slug);
+              } else if (grapeInput.trim()) {
+                goToJournalOnly();
+              }
+            }
+          }}
           placeholder="Type a grape or wine style… e.g. Pinot Noir"
           className="w-full px-4 py-3 rounded-xl text-[14px] outline-none"
           style={{
