@@ -94,7 +94,15 @@ export function TastingSession({
   const prevMessageCount = useRef(0);
   const isRed = sectionId <= 3;
 
-  // Only scroll when a NEW message is added — not during streaming
+  // Scroll to top when tasting phase begins so sommelier is visible
+  useEffect(() => {
+    if (phase === 'tasting') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      prevMessageCount.current = 1; // skip auto-scroll for the initial message
+    }
+  }, [phase]);
+
+  // Scroll to bottom only for follow-up replies
   useEffect(() => {
     if (phase === 'tasting' && messages.length > prevMessageCount.current) {
       prevMessageCount.current = messages.length;
@@ -491,7 +499,7 @@ export function TastingSession({
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0" style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))', border: '2px solid rgba(255,255,255,0.12)', boxShadow: '0 4px 16px rgba(124,58,82,0.40)' }}>🍷</div>
             <div className="flex-1">
-              <p className="fraunces-card font-bold text-[15px] text-white">Your Sommelier</p>
+              <p className="fraunces-card font-bold text-[15px] text-white">Terri, your AI Sommelier</p>
               <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.40)' }}>Teaching you about {displayName}</p>
             </div>
             {aiLoading && (

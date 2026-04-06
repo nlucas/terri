@@ -81,6 +81,7 @@ export function AdHocLogPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
+  const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevMessageCount = useRef(0);
 
@@ -90,6 +91,15 @@ export function AdHocLogPage() {
   // Show tannin slider for reds (sections 1-3)
   const isRed = detectedSectionId != null && detectedSectionId <= 3;
 
+  // Scroll to top when tasting phase begins
+  useEffect(() => {
+    if (phase === 'tasting') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      prevMessageCount.current = 1; // skip auto-scroll for first message
+    }
+  }, [phase]);
+
+  // Scroll to bottom only for follow-up replies (not initial streaming)
   useEffect(() => {
     if (phase === 'tasting' && messages.length > prevMessageCount.current) {
       prevMessageCount.current = messages.length;
@@ -432,6 +442,8 @@ export function AdHocLogPage() {
   return (
     <div className="px-4 pt-6 pb-28 flex flex-col gap-5">
 
+      <div ref={topRef} />
+
       {/* Back + title */}
       <div className="flex items-center gap-3">
         <button
@@ -481,7 +493,7 @@ export function AdHocLogPage() {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0" style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))', border: '2px solid rgba(255,255,255,0.12)', boxShadow: '0 4px 16px rgba(124,58,82,0.40)' }}>🍷</div>
             <div className="flex-1">
-              <p className="fraunces-card font-bold text-[15px] text-white">Your Sommelier</p>
+              <p className="fraunces-card font-bold text-[15px] text-white">Terri, your AI Sommelier</p>
               <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.40)' }}>Teaching you about {displayName}</p>
             </div>
             {aiLoading && (
