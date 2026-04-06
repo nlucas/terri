@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { upsertBottle, upsertProfile } from '@/lib/db/queries';
+import { insertBottle, upsertProfile, getNextSlotIndex } from '@/lib/db/queries';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -18,11 +18,17 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
+    // Auto-assign slotIndex server-side if a section is given but no slot provided
+    let resolvedSlotIndex: number | null = body.slotIndex ?? null;
+    if (body.sectionId != null && resolvedSlotIndex == null) {
+      resolvedSlotIndex = await getNextSlotIndex(user.id, body.sectionId);
+    }
+
     // Always use the authenticated user's ID — never trust the client
-    const result = await upsertBottle({
+    const result = await insertBottle({
       userId:       user.id,
-      sectionId:    body.sectionId,
-      slotIndex:    body.slotIndex,
+      sectionId:    body.sectionId ?? null,
+      slotIndex:    resolvedSlotIndex,
       wineName:     body.wineName,
       producer:     body.producer ?? null,
       vintage:      body.vintage ?? null,

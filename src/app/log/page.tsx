@@ -1,11 +1,15 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { SECTION_BY_SLUG } from '@/lib/sections';
+import { SECTION_BY_SLUG, SECTIONS } from '@/lib/sections';
+import { getNextSlotIndex } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
 import { TastingSession } from '@/components/learn/TastingSession';
+import { AdHocLogPage } from '@/components/learn/AdHocLogPage';
+import { JournalLogPage } from '@/components/learn/JournalLogPage';
 
 interface PageProps {
-  searchParams: Promise<{ section?: string; slot?: string }>;
+  searchParams: Promise<{ section?: string }>;
 }
 
 export default async function LogPage({ searchParams }: PageProps) {
@@ -13,27 +17,46 @@ export default async function LogPage({ searchParams }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { section: sectionSlug, slot } = await searchParams;
-  const section = sectionSlug ? SECTION_BY_SLUG[sectionSlug] : null;
+  const { section: sectionSlug } = await searchParams;
 
-  // Must have a valid section to open a bottle
-  if (!section) redirect('/learn');
+  // ── Ad-hoc mode: no section chosen yet ─────────────────────────
+  if (!sectionSlug) {
+    return (
+      <AppShell>
+        <AdHocLogPage sections={SECTIONS} />
+      </AppShell>
+    );
+  }
 
-  const slotIndex = slot !== undefined ? parseInt(slot) : 0;
+  // ── Journal-only mode (no section) ─────────────────────────────
+  if (sectionSlug === 'adhoc') {
+    return (
+      <AppShell>
+        <JournalLogPage />
+      </AppShell>
+    );
+  }
+
+  // ── Section-specific mode ───────────────────────────────────────
+  const section = SECTION_BY_SLUG[sectionSlug];
+  if (!section) redirect('/log');
+
+  // Auto-assign the next available slot for this section
+  const slotIndex = await getNextSlotIndex(user.id, section.id);
   const slotNumber = slotIndex + 1;
 
   return (
     <AppShell>
       <div className="px-4 pb-12">
 
-        {/* ── Header ───────────────────────────────────────── */}
+        {/* ── Header ──────────────────────────────────────────── */}
         <div
           className="sticky top-0 z-10 flex items-center gap-3 py-4 mb-2"
           style={{ background: 'var(--color-bg-base)' }}
         >
-          <a
+          <Link
             href={`/learn/${section.slug}?tab=bottles`}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[16px] shrink-0 transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[16px] shrink-0"
             style={{
               background: 'var(--color-bg-surface)',
               border: '1px solid var(--color-border-subtle)',
@@ -41,10 +64,13 @@ export default async function LogPage({ searchParams }: PageProps) {
             }}
           >
             ←
-          </a>
+          </Link>
           <div>
-            <p className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: 'var(--color-text-muted)' }}>
-              {section.name} · Bottle {slotNumber} of 3
+            <p
+              className="text-[10px] font-semibold tracking-widest uppercase"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {section.name} · Bottle {slotNumber}
             </p>
             <h1
               className="fraunces-display font-bold leading-tight"
@@ -55,7 +81,6 @@ export default async function LogPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        {/* ── Tasting session ───────────────────────────────── */}
         <TastingSession
           sectionSlug={section.slug}
           sectionId={section.id}

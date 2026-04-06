@@ -1,9 +1,5 @@
 import { WineSection } from '@/types';
 
-// ─── The 6 Foundational Sections ─────────────────────────────────
-// Order matters: this is the progression order.
-// Color pairs are used for full-bleed card header gradients.
-
 export const SECTIONS: WineSection[] = [
   {
     id: 1,
@@ -81,35 +77,55 @@ export const SECTION_BY_SLUG = Object.fromEntries(
   SECTIONS.map((s) => [s.slug, s])
 ) as Record<string, WineSection>;
 
-// A section is "unlocked" if all previous sections are complete
+// All 6 foundational sections are always open.
+// Advanced track (future) remains locked.
 export function isSectionUnlocked(
-  sectionId: number,
-  completedSections: number[]
+  _sectionId: number,
+  _completedSections: number[]
 ): boolean {
-  if (sectionId === 1) return true;
-  // All sections with lower IDs must be complete
-  for (let i = 1; i < sectionId; i++) {
-    if (!completedSections.includes(i)) return false;
-  }
   return true;
 }
 
+// Returns all logged bottles for a section — no slot cap.
+// isComplete triggers at 3 bottles.
 export function getSectionProgress(
   sectionId: number,
-  loggedBottles: { sectionId: number; slotIndex: number; wineName: string }[]
+  allBottles: { id: string; sectionId: number | null; slotIndex: number | null; wineName: string }[]
 ) {
-  const sectionBottles = loggedBottles.filter((b) => b.sectionId === sectionId);
-  const slots = [0, 1, 2].map((i) => {
-    const bottle = sectionBottles.find((b) => b.slotIndex === i);
-    return {
-      index: i as 0 | 1 | 2,
-      status: bottle ? ('logged' as const) : ('empty' as const),
-      wineName: bottle?.wineName,
-    };
-  });
+  const sectionBottles = allBottles
+    .filter((b) => b.sectionId === sectionId)
+    .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0));
+
+  const bottles = sectionBottles.map((b, i) => ({
+    index: i,
+    wineName: b.wineName,
+    bottleId: b.id,
+  }));
+
   return {
     sectionId,
-    slots: slots as [typeof slots[0], typeof slots[0], typeof slots[0]],
-    isComplete: slots.every((s) => s.status === 'logged'),
+    bottles,
+    isComplete: bottles.length >= 3,
   };
+}
+
+// ─── Smart section detection from grape variety ───────────────────
+// Used by ad-hoc logging to suggest a section match.
+
+const SECTION_GRAPES: { id: number; keywords: string[] }[] = [
+  { id: 1, keywords: ['pinot noir', 'gamay', 'beaujolais', 'burgundy', 'bourgogne'] },
+  { id: 2, keywords: ['merlot', 'sangiovese', 'malbec', 'chianti', 'montepulciano', 'rioja', 'tempranillo', 'barbera', 'dolcetto'] },
+  { id: 3, keywords: ['cabernet sauvignon', 'cab sauv', 'syrah', 'shiraz', 'zinfandel', 'petite sirah', 'mourvèdre', 'mourvedre', 'grenache', 'bordeaux'] },
+  { id: 4, keywords: ['sauvignon blanc', 'pinot grigio', 'pinot gris', 'albariño', 'albarino', 'muscadet', 'grüner veltliner', 'gruner', 'vermentino', 'sancerre', 'pouilly fumé', 'vinho verde'] },
+  { id: 5, keywords: ['chardonnay', 'viognier', 'white burgundy', 'white rioja', 'roussanne', 'marsanne', 'white rhône'] },
+  { id: 6, keywords: ['champagne', 'prosecco', 'cava', 'rosé', 'rose', 'sparkling', 'crémant', 'cremant', 'sekt', 'pétillant', 'pet nat', 'moscato', 'lambrusco'] },
+];
+
+export function detectSectionFromGrape(input: string): number | null {
+  if (!input.trim()) return null;
+  const lower = input.toLowerCase();
+  for (const { id, keywords } of SECTION_GRAPES) {
+    if (keywords.some((kw) => lower.includes(kw))) return id;
+  }
+  return null;
 }

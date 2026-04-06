@@ -5,20 +5,15 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { href: '/learn', label: 'Learn', icon: '📚' },
-  { href: '/map',   label: 'Map',   icon: '🗺️' },
+  { href: '/learn',   label: 'Learn',   icon: '📚' },
+  { href: '/map',     label: 'Map',     icon: '🗺️' },
   { href: '/journal', label: 'Journal', icon: '📔' },
   { href: '/profile', label: 'Profile', icon: '👤' },
 ];
 
-interface BottomNavProps {
-  showLogButton?: boolean; // only shown post-foundational
-}
-
-export function BottomNav({ showLogButton = false }: BottomNavProps) {
+export function BottomNav() {
   const pathname = usePathname();
 
-  // Split nav items to put Log button in the middle
   const leftItems  = NAV_ITEMS.slice(0, 2);
   const rightItems = NAV_ITEMS.slice(2);
 
@@ -30,32 +25,27 @@ export function BottomNav({ showLogButton = false }: BottomNavProps) {
         borderTop: '1px solid var(--color-border-subtle)',
       }}
     >
-      <div className="flex items-center justify-around px-2 pt-2 pb-safe-area-inset-bottom"
-        style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
-
-        {/* Left items */}
+      <div
+        className="flex items-center justify-around px-2 pt-2"
+        style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+      >
         {leftItems.map((item) => (
           <NavItem key={item.href} item={item} active={pathname.startsWith(item.href)} />
         ))}
 
-        {/* Center — Log button (only post-foundational) or spacer */}
-        {showLogButton ? (
-          <Link
-            href="/log"
-            className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-white transition-transform active:scale-95"
-            style={{
-              background: 'var(--color-primary)',
-              boxShadow: '0 4px 16px rgba(124,58,82,0.40), 0 2px 6px rgba(124,58,82,0.25)',
-              marginTop: '-20px',
-            }}
-          >
-            <span className="text-2xl leading-none">+</span>
-          </Link>
-        ) : (
-          <div className="w-14" /> /* spacer to keep layout balanced */
-        )}
+        {/* Center — always-visible Log a Bottle button */}
+        <Link
+          href="/log"
+          className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-white transition-transform active:scale-95"
+          style={{
+            background: 'linear-gradient(145deg, var(--color-primary-light), var(--color-primary))',
+            boxShadow: '0 4px 16px rgba(124,58,82,0.40), 0 2px 6px rgba(124,58,82,0.20)',
+            marginTop: '-22px',
+          }}
+        >
+          <span className="text-[26px] leading-none font-light">+</span>
+        </Link>
 
-        {/* Right items */}
         {rightItems.map((item) => (
           <NavItem key={item.href} item={item} active={pathname.startsWith(item.href)} />
         ))}

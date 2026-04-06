@@ -5,13 +5,13 @@ import { WineSection, BottleSlot } from '@/types';
 
 interface SectionCardProps {
   section: WineSection;
-  slots: [BottleSlot, BottleSlot, BottleSlot];
+  bottles: BottleSlot[];
   isComplete: boolean;
   isLocked: boolean;
 }
 
-export function SectionCard({ section, slots, isComplete, isLocked }: SectionCardProps) {
-  const logged = slots.filter((s) => s.status === 'logged').length;
+export function SectionCard({ section, bottles, isComplete, isLocked }: SectionCardProps) {
+  const logged = bottles.length;
 
   const content = (
     <div

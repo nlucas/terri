@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { WineSection, BottleSlot } from '@/types';
-import { SlotPillLarge } from './SlotPillLarge';
+import { SlotPillLarge, AddBottlePill } from './SlotPillLarge';
 
 interface SectionTabsProps {
   section: WineSection;
-  slots: [BottleSlot, BottleSlot, BottleSlot];
+  bottles: BottleSlot[];
   isComplete: boolean;
   guideHtml: string;
   nextSectionSlug?: string;
@@ -17,7 +17,7 @@ interface SectionTabsProps {
 
 export function SectionTabs({
   section,
-  slots,
+  bottles,
   isComplete,
   guideHtml,
   nextSectionSlug,
@@ -25,7 +25,7 @@ export function SectionTabs({
   defaultTab = 'learn',
 }: SectionTabsProps) {
   const [tab, setTab] = useState<'learn' | 'bottles'>(defaultTab);
-  const logged = slots.filter((s) => s.status === 'logged').length;
+  const logged = bottles.length;
 
   return (
     <div>
@@ -48,7 +48,7 @@ export function SectionTabs({
               border: 'none',
             }}
           >
-            {t === 'learn' ? '📖 Learn' : `🍷 My Bottles (${logged}/3)`}
+            {t === 'learn' ? '📖 Learn' : `🍷 My Bottles${logged > 0 ? ` (${logged})` : ''}`}
             {tab === t && (
               <div
                 className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
@@ -107,25 +107,34 @@ export function SectionTabs({
             <p className="text-[13px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
               {logged === 0
                 ? 'Open a bottle and taste it with your sommelier.'
-                : logged === 3
-                ? 'All 3 bottles tasted. Section complete!'
+                : isComplete
+                ? `${logged} bottle${logged === 1 ? '' : 's'} tasted. Section complete — keep going!`
                 : `${logged} tasted, ${3 - logged} to go.`}
             </p>
           </div>
 
-          {/* Slots */}
-          <div className="flex flex-col gap-3">
-            {slots.map((slot, i) => (
-              <SlotPillLarge
-                key={i}
-                slot={slot as BottleSlot}
-                slotNumber={i + 1}
-                sectionSlug={section.slug}
-                sectionColor={section.color}
-                sectionColorDark={section.colorDark}
-              />
-            ))}
-          </div>
+          {/* Logged bottles */}
+          {bottles.length > 0 && (
+            <div className="flex flex-col gap-3">
+              {bottles.map((bottle, i) => (
+                <SlotPillLarge
+                  key={bottle.bottleId}
+                  slot={bottle}
+                  slotNumber={i + 1}
+                  sectionSlug={section.slug}
+                  sectionColor={section.color}
+                  sectionColorDark={section.colorDark}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Add bottle CTA */}
+          <AddBottlePill
+            sectionSlug={section.slug}
+            sectionColor={section.color}
+            label={logged === 0 ? 'Log your first bottle' : 'Add another bottle'}
+          />
 
           {/* Hint to read guide first */}
           {logged === 0 && (
@@ -138,7 +147,15 @@ export function SectionTabs({
             >
               <span className="text-xl">💡</span>
               <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-                Read the <button onClick={() => setTab('learn')} className="underline font-semibold" style={{ color: 'var(--color-primary)' }}>Learn tab</button> first — your sommelier will connect what you taste to what you read.
+                Read the{' '}
+                <button
+                  onClick={() => setTab('learn')}
+                  className="underline font-semibold"
+                  style={{ color: 'var(--color-primary)' }}
+                >
+                  Learn tab
+                </button>{' '}
+                first — your sommelier will connect what you taste to what you read.
               </p>
             </div>
           )}
@@ -157,7 +174,7 @@ export function SectionTabs({
                 Section Complete!
               </p>
               <p className="text-[13px] mb-4" style={{ color: 'var(--color-primary-dark)' }}>
-                All 3 bottles tasted. On to the next one.
+                3+ bottles tasted. Keep adding or explore the next section.
               </p>
               {nextSectionSlug && (
                 <Link

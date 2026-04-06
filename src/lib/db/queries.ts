@@ -1,10 +1,10 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { db } from './index';
 import { loggedBottles, profiles, type NewLoggedBottle } from './schema';
 
 // ─── Bottles ──────────────────────────────────────────────────────
 
-/** Fetch all logged bottles for a user */
+/** Fetch all logged bottles for a user, oldest first */
 export async function getUserBottles(userId: string) {
   return db
     .select()
@@ -13,7 +13,22 @@ export async function getUserBottles(userId: string) {
     .orderBy(loggedBottles.loggedAt);
 }
 
-/** Fetch a single logged bottle by user + section + slot */
+/** Fetch a single bottle by its UUID */
+export async function getBottleById(bottleId: string, userId: string) {
+  const [bottle] = await db
+    .select()
+    .from(loggedBottles)
+    .where(
+      and(
+        eq(loggedBottles.id, bottleId),
+        eq(loggedBottles.userId, userId)
+      )
+    )
+    .limit(1);
+  return bottle ?? null;
+}
+
+/** Fetch a single logged bottle by user + section + slot (legacy compat) */
 export async function getBottle(userId: string, sectionId: number, slotIndex: number) {
   const [bottle] = await db
     .select()
@@ -29,7 +44,7 @@ export async function getBottle(userId: string, sectionId: number, slotIndex: nu
   return bottle ?? null;
 }
 
-/** Fetch bottles for a specific section */
+/** Fetch all bottles for a specific section, ordered by slot */
 export async function getSectionBottles(userId: string, sectionId: number) {
   return db
     .select()
@@ -39,48 +54,51 @@ export async function getSectionBottles(userId: string, sectionId: number) {
         eq(loggedBottles.userId, userId),
         eq(loggedBottles.sectionId, sectionId)
       )
-    );
+    )
+    .orderBy(loggedBottles.loggedAt);
 }
 
-/** Log a new bottle (or update existing slot) */
-export async function upsertBottle(data: NewLoggedBottle) {
+/** Fetch ad-hoc bottles (no section assigned) */
+export async function getAdhocBottles(userId: string) {
+  return db
+    .select()
+    .from(loggedBottles)
+    .where(
+      and(
+        eq(loggedBottles.userId, userId),
+        isNull(loggedBottles.sectionId)
+      )
+    )
+    .orderBy(loggedBottles.loggedAt);
+}
+
+/** Get the next slot index for a section (= current count of bottles in that section) */
+export async function getNextSlotIndex(userId: string, sectionId: number): Promise<number> {
+  const existing = await getSectionBottles(userId, sectionId);
+  return existing.length;
+}
+
+/** Insert a new bottle. slotIndex should be pre-computed via getNextSlotIndex. */
+export async function insertBottle(data: NewLoggedBottle) {
   return db
     .insert(loggedBottles)
     .values(data)
-    .onConflictDoUpdate({
-      target: [loggedBottles.userId, loggedBottles.sectionId, loggedBottles.slotIndex],
-      set: {
-        wineName:     data.wineName,
-        producer:     data.producer,
-        vintage:      data.vintage,
-        region:       data.region,
-        country:      data.country,
-        grapeVariety: data.grapeVariety,
-        sweetness:    data.sweetness,
-        acidity:      data.acidity,
-        tannin:       data.tannin,
-        body:         data.body,
-        rating:       data.rating,
-        notes:        data.notes,
-        loggedAt:     new Date(),
-      },
-    })
     .returning();
 }
 
 // ─── Progress ─────────────────────────────────────────────────────
 
-/** Returns which sections are complete (all 3 slots filled) for a user */
+/** Returns which sections are complete (3+ bottles) for a user */
 export async function getCompletedSections(userId: string): Promise<number[]> {
   const bottles = await getUserBottles(userId);
 
-  // Group by sectionId, count slots
   const counts: Record<number, number> = {};
   for (const b of bottles) {
-    counts[b.sectionId] = (counts[b.sectionId] ?? 0) + 1;
+    if (b.sectionId != null) {
+      counts[b.sectionId] = (counts[b.sectionId] ?? 0) + 1;
+    }
   }
 
-  // A section is complete when all 3 slots are filled
   return Object.entries(counts)
     .filter(([, count]) => count >= 3)
     .map(([sectionId]) => Number(sectionId));
@@ -95,7 +113,6 @@ export async function deleteAllBottles(userId: string) {
 
 // ─── Profiles ─────────────────────────────────────────────────────
 
-/** Get or create a user profile (called after auth sign-in) */
 export async function getProfile(userId: string) {
   const [profile] = await db
     .select()

@@ -1,8 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { SECTION_BY_SLUG, SECTIONS } from '@/lib/sections';
-import { getBottle } from '@/lib/db/queries';
+import { SECTION_BY_SLUG } from '@/lib/sections';
+import { getBottleById } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
 import { BottleSommelierCard } from '@/components/learn/BottleSommelierCard';
 
@@ -10,11 +10,8 @@ interface PageProps {
   params: Promise<{ slug: string; slot: string }>;
 }
 
-export async function generateStaticParams() {
-  return SECTIONS.flatMap((s) =>
-    [0, 1, 2].map((slot) => ({ slug: s.slug, slot: String(slot) }))
-  );
-}
+// Dynamic — no static params needed since bottles are user-specific
+export const dynamic = 'force-dynamic';
 
 const SLIDER_LABELS: Record<string, [string, string]> = {
   sweetness: ['Bone dry', 'Sweet'],
@@ -49,22 +46,21 @@ function SliderDisplay({ label, value, color }: { label: string; value: number; 
 }
 
 export default async function BottleDetailPage({ params }: PageProps) {
-  const { slug, slot: slotStr } = await params;
+  // `slot` now holds the bottle UUID (not a slot index number)
+  const { slug, slot: bottleId } = await params;
   const section = SECTION_BY_SLUG[slug];
   if (!section) notFound();
-
-  const slotIndex = parseInt(slotStr);
-  if (isNaN(slotIndex) || slotIndex < 0 || slotIndex > 2) notFound();
 
   // Auth
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Fetch this specific bottle
-  const bottle = await getBottle(user.id, section.id, slotIndex);
+  // Fetch this specific bottle by UUID
+  const bottle = await getBottleById(bottleId, user.id);
   if (!bottle) redirect(`/learn/${slug}`);
 
+  const slotNumber = (bottle.slotIndex ?? 0) + 1;
   const isRed = section.id <= 3;
 
   return (
@@ -86,30 +82,21 @@ export default async function BottleDetailPage({ params }: PageProps) {
           className="absolute -top-6 -right-4 select-none pointer-events-none fraunces-display font-black opacity-10"
           style={{ fontSize: 140, lineHeight: 1, color: 'white' }}
         >
-          {slotIndex + 1}
+          {slotNumber}
         </span>
 
         {/* Back */}
         <Link
-          href={`/learn/${slug}`}
+          href={`/learn/${slug}?tab=bottles`}
           className="absolute top-4 left-4 z-10 flex items-center gap-1.5 text-white text-[13px] font-semibold px-3 py-1.5 rounded-full"
           style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}
         >
           ← Back
         </Link>
 
-        {/* Edit button */}
-        <Link
-          href={`/log?section=${slug}&slot=${slotIndex}`}
-          className="absolute top-4 right-4 z-10 text-white text-[12px] font-semibold px-3 py-1.5 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}
-        >
-          Edit ✎
-        </Link>
-
         <div className="relative z-10 px-5 pb-5">
           <p className="text-[11px] font-semibold tracking-widest uppercase text-white/60 mb-1">
-            {section.name} · Bottle {slotIndex + 1}
+            {section.name} · Bottle {slotNumber}
           </p>
           <h1
             className="fraunces-display font-bold text-white leading-tight"
@@ -173,7 +160,7 @@ export default async function BottleDetailPage({ params }: PageProps) {
                 Your notes
               </p>
               <p className="text-[14px] leading-relaxed italic" style={{ color: 'var(--color-text-secondary)' }}>
-                "{bottle.notes}"
+                &ldquo;{bottle.notes}&rdquo;
               </p>
             </div>
           )}

@@ -278,7 +278,9 @@ export function ProfileView({ data }: { data: ProfileData }) {
 
   // Favorite section (most bottles)
   const countBySec = bottles.reduce<Record<number, number>>((acc, b) => {
-    acc[b.sectionId] = (acc[b.sectionId] ?? 0) + 1;
+    if (b.sectionId != null) {
+      acc[b.sectionId] = (acc[b.sectionId] ?? 0) + 1;
+    }
     return acc;
   }, {});
   const favSectionId = Object.entries(countBySec).sort(([, a], [, b]) => b - a)[0]?.[0];

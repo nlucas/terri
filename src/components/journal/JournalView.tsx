@@ -341,7 +341,7 @@ export function JournalView({ bottles, completedSections, uniqueCountries }: Jou
         )
       : bottles
           .filter((b) => b.sectionId === activeSection)
-          .sort((a, b) => a.slotIndex - b.slotIndex);
+          .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0));
 
   return (
     <div className="px-4 pt-12 pb-4">

@@ -8,7 +8,6 @@ import { SectionCard } from '@/components/learn/SectionCard';
 import { IntroCard } from '@/components/learn/IntroCard';
 import { OnboardingGate } from '@/components/onboarding/OnboardingGate';
 import { SECTIONS, isSectionUnlocked, getSectionProgress } from '@/lib/sections';
-import { BottleSlot } from '@/types';
 
 export default async function LearnPage() {
   // Auth check
@@ -25,7 +24,7 @@ export default async function LearnPage() {
   const foundationalComplete = completedSections.length === 6;
 
   return (
-    <AppShell showLogButton={foundationalComplete}>
+    <AppShell>
       {/* Silently redirect first-timers to onboarding */}
       <OnboardingGate />
 
@@ -50,7 +49,7 @@ export default async function LearnPage() {
               <SectionCard
                 key={section.id}
                 section={section}
-                slots={progress.slots as [BottleSlot, BottleSlot, BottleSlot]}
+                bottles={progress.bottles}
                 isComplete={progress.isComplete}
                 isLocked={!unlocked}
               />

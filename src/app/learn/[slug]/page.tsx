@@ -8,7 +8,6 @@ import { getUserBottles } from '@/lib/db/queries';
 import { markdownToHtml } from '@/lib/markdown';
 import { AppShell } from '@/components/layout/AppShell';
 import { SectionTabs } from '@/components/learn/SectionTabs';
-import { BottleSlot } from '@/types';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -95,7 +94,7 @@ export default async function SectionPage({ params, searchParams }: PageProps) {
       {/* ── Tabbed content ──────────────────────────────────── */}
       <SectionTabs
         section={section}
-        slots={progress.slots as [BottleSlot, BottleSlot, BottleSlot]}
+        bottles={progress.bottles}
         isComplete={progress.isComplete}
         guideHtml={guideHtml}
         nextSectionSlug={nextSection?.slug}

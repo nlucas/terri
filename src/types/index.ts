@@ -8,45 +8,42 @@ export interface WineSection {
   name: string;
   shortName: string;
   grapes: string[];
-  color: string;          // CSS hex — card header gradient start
-  colorDark: string;      // CSS hex — card header gradient end
-  description: string;    // one-sentence hook shown on card
-  contentFile: string;    // path to markdown content
+  color: string;
+  colorDark: string;
+  description: string;
+  contentFile: string;
 }
 
-export type SlotStatus = 'empty' | 'logged';
-
 export interface BottleSlot {
-  index: 0 | 1 | 2;
-  status: SlotStatus;
-  wineName?: string;
-  wineId?: string;
+  index: number;       // 0, 1, 2, 3… unlimited
+  wineName: string;
+  bottleId: string;    // DB uuid for navigation
 }
 
 export interface SectionProgress {
   sectionId: SectionId;
-  slots: [BottleSlot, BottleSlot, BottleSlot];
-  isComplete: boolean;
+  bottles: BottleSlot[];  // all logged bottles, no cap
+  isComplete: boolean;    // true when bottles.length >= 3
 }
 
 export interface LoggedBottle {
   id: string;
   userId: string;
-  sectionId: SectionId;
-  slotIndex: 0 | 1 | 2;
+  sectionId: number | null;
+  slotIndex: number | null;
   wineName: string;
-  producer?: string;
-  vintage?: number;
-  region?: string;
-  country?: string;
-  grapeVariety?: string;
-  sweetness?: number;   // 1-5 slider
-  acidity?: number;     // 1-5 slider
-  tannin?: number;      // 1-5 slider (reds only)
-  body?: number;        // 1-5 slider
-  rating?: number;      // 1-5 stars
-  notes?: string;
-  loggedAt: string;     // ISO date string
+  producer?: string | null;
+  vintage?: number | null;
+  region?: string | null;
+  country?: string | null;
+  grapeVariety?: string | null;
+  sweetness?: number | null;
+  acidity?: number | null;
+  tannin?: number | null;
+  body?: number | null;
+  rating?: number | null;
+  notes?: string | null;
+  loggedAt: string;
 }
 
 export interface UserProfile {
