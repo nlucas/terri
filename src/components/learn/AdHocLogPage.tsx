@@ -15,7 +15,7 @@ const WINE_TYPE_TO_SECTION: Record<string, number> = {
   rose:        6,
 };
 
-type SearchState = 'idle' | 'searching' | 'confirming' | 'not-found';
+type SearchState = 'idle' | 'previewing' | 'searching' | 'confirming' | 'not-found';
 type Phase = 'identify' | 'tasting';
 
 interface IdentifiedWine {
@@ -61,6 +61,12 @@ export function AdHocLogPage() {
   const [rawInput, setRawInput] = useState('');
   const [identified, setIdentified] = useState<IdentifiedWine | null>(null);
   const [detectedSectionId, setDetectedSectionId] = useState<number | null>(null);
+
+  // Image capture state
+  const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
+  const [capturedBase64, setCapturedBase64] = useState<string | null>(null);
+  const [captureError, setCaptureError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [identity, setIdentity] = useState({
     wineName: '',
@@ -135,6 +141,81 @@ export function AdHocLogPage() {
       }
     } catch {
       setIdentity((p) => ({ ...p, wineName: rawInput.trim() }));
+      setSearchState('not-found');
+    }
+  }
+
+  // ── Step 1b: Capture & identify from photo ────────────
+  function openCamera() {
+    setCaptureError('');
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    // Reset the input so picking the same file again still fires onChange
+    e.target.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setCaptureError('Please choose an image file.');
+      return;
+    }
+
+    try {
+      const { dataUrl, base64 } = await resizeImageToBase64(file, 1024, 0.85);
+      setCapturedImageUrl(dataUrl);
+      setCapturedBase64(base64);
+      setSearchState('previewing');
+    } catch (err) {
+      console.error('image resize error:', err);
+      setCaptureError('Could not read that photo. Try again?');
+    }
+  }
+
+  function retakePhoto() {
+    setCapturedImageUrl(null);
+    setCapturedBase64(null);
+    setCaptureError('');
+    setSearchState('idle');
+    // Re-open the camera so the user lands back on capture, not the search box
+    setTimeout(() => fileInputRef.current?.click(), 0);
+  }
+
+  async function lookUpFromImage() {
+    if (!capturedBase64) return;
+    setSearchState('searching');
+
+    try {
+      const res = await fetch('/api/identify-wine-from-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: capturedBase64, mediaType: 'image/jpeg' }),
+      });
+      const data: IdentifiedWine = await res.json();
+      setIdentified(data);
+
+      if (!data.found || data.confidence === 'low') {
+        // Fallback: drop into manual form, pre-filling whatever Claude could read
+        setIdentity({
+          wineName:     data.canonicalName ?? '',
+          producer:     data.producer ?? '',
+          vintage:      data.vintage ? String(data.vintage) : '',
+          region:       data.region ?? '',
+          country:      data.country ?? '',
+          grapeVariety: data.grapeVariety ?? '',
+        });
+        setRawInput(data.canonicalName ?? 'this bottle');
+        setSearchState('not-found');
+      } else {
+        const sid = data.wineType ? (WINE_TYPE_TO_SECTION[data.wineType] ?? null) : null;
+        setDetectedSectionId(sid);
+        setRawInput(data.canonicalName ?? '');
+        setSearchState('confirming');
+      }
+    } catch {
+      setIdentity((p) => ({ ...p, wineName: '' }));
+      setRawInput('this bottle');
       setSearchState('not-found');
     }
   }
@@ -308,6 +389,7 @@ export function AdHocLogPage() {
 
     // Searching spinner
     if (searchState === 'searching') {
+      const isImageSearch = !!capturedBase64;
       return (
         <div className="px-4 pt-6 pb-28">
           {Header}
@@ -319,11 +401,64 @@ export function AdHocLogPage() {
                 />
               ))}
             </div>
-            <p className="text-[15px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-              Looking up <span style={{ color: 'var(--color-text-primary)', fontWeight: 700 }}>{rawInput}</span>…
-            </p>
+            {isImageSearch ? (
+              <p className="text-[15px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                Reading the label…
+              </p>
+            ) : (
+              <p className="text-[15px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                Looking up <span style={{ color: 'var(--color-text-primary)', fontWeight: 700 }}>{rawInput}</span>…
+              </p>
+            )}
             <style>{`@keyframes bounce{0%,100%{transform:translateY(0);opacity:0.4}50%{transform:translateY(-6px);opacity:1}}`}</style>
           </div>
+        </div>
+      );
+    }
+
+    // Photo preview — let the user confirm or retake before we send to Claude
+    if (searchState === 'previewing' && capturedImageUrl) {
+      return (
+        <div className="px-4 pt-6 pb-28 flex flex-col gap-4">
+          {Header}
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--color-bg-surface)', boxShadow: '0 2px 8px rgba(44,26,16,0.06)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={capturedImageUrl}
+              alt="Captured wine label"
+              className="w-full block"
+              style={{ maxHeight: '60vh', objectFit: 'contain', background: 'var(--color-bg-subtle)' }}
+            />
+            <div className="p-4">
+              <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
+                Make sure the label is clear and readable. We&apos;ll try to identify the wine for you.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={lookUpFromImage}
+            className="w-full py-4 rounded-2xl font-bold text-[17px] text-white transition-all active:scale-[0.98]"
+            style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))', boxShadow: '0 6px 24px rgba(124,58,82,0.35)' }}
+          >
+            Identify This Wine 🔍
+          </button>
+
+          <button
+            onClick={retakePhoto}
+            className="w-full py-3 rounded-2xl font-semibold text-[15px]"
+            style={{ background: 'var(--color-bg-subtle)', border: '1.5px solid var(--color-border-default)', color: 'var(--color-text-muted)' }}
+          >
+            Retake photo
+          </button>
+
+          <button
+            onClick={() => { setSearchState('idle'); setCapturedImageUrl(null); setCapturedBase64(null); }}
+            className="text-center text-[13px] underline underline-offset-2"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            ← Cancel
+          </button>
         </div>
       );
     }
@@ -391,6 +526,25 @@ export function AdHocLogPage() {
       <div className="px-4 pt-6 pb-28 flex flex-col gap-5">
         {Header}
 
+        {/* Hidden file input — triggered by the camera button.
+            NOTE: iOS Safari refuses programmatic .click() on inputs with
+            display:none, so we hide it via position/opacity instead. */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelected}
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: 'none',
+            left: -9999,
+          }}
+        />
+
         <div className="rounded-2xl p-5" style={{ background: 'var(--color-bg-surface)', boxShadow: '0 2px 8px rgba(44,26,16,0.06)' }}>
           <p className="text-[14px] font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>
             What wine are you opening? <span style={{ color: 'var(--color-primary)' }}>*</span>
@@ -422,6 +576,21 @@ export function AdHocLogPage() {
           <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>or</span>
           <div className="flex-1 h-px" style={{ background: 'var(--color-border-subtle)' }} />
         </div>
+
+        <button
+          onClick={openCamera}
+          className="w-full py-4 rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+          style={{ background: 'var(--color-bg-surface)', border: '1.5px solid var(--color-primary)', color: 'var(--color-primary)' }}
+        >
+          <span style={{ fontSize: 18 }}>📷</span>
+          Snap the label
+        </button>
+
+        {captureError && (
+          <p className="text-[13px] text-center" style={{ color: '#B91C1C' }}>
+            {captureError}
+          </p>
+        )}
 
         <button
           onClick={() => setSearchState('not-found')}
@@ -676,6 +845,44 @@ function SmallLabel({ children, required }: { children: React.ReactNode; require
       {children}{required && <span style={{ color: 'var(--color-primary)' }}> *</span>}
     </p>
   );
+}
+
+// ─── Client-side image resize ───────────────────────────────────
+// Reads a File, scales the longest edge down to maxEdge, and returns
+// a JPEG data URL plus the bare base64 payload (no data: prefix).
+
+async function resizeImageToBase64(
+  file: File,
+  maxEdge = 1024,
+  quality = 0.85,
+): Promise<{ dataUrl: string; base64: string }> {
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error('Failed to decode image'));
+      i.src = objectUrl;
+    });
+
+    const longest = Math.max(img.width, img.height);
+    const scale = longest > maxEdge ? maxEdge / longest : 1;
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context unavailable');
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    const base64 = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+    return { dataUrl, base64 };
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 function TastingSlider({ label, left, right, value, onChange, color }: { label: string; left: string; right: string; value: number; onChange: (v: number) => void; color: string }) {
