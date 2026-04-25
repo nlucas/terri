@@ -3,16 +3,21 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { WineSection, BottleSlot } from '@/types';
+import { SectionClassics } from '@/lib/classics';
 import { SlotPillLarge, AddBottlePill } from './SlotPillLarge';
+import { ClassicsList } from './ClassicsList';
+
+type Tab = 'learn' | 'classics' | 'bottles';
 
 interface SectionTabsProps {
   section: WineSection;
   bottles: BottleSlot[];
   isComplete: boolean;
   guideHtml: string;
+  classics: SectionClassics;
   nextSectionSlug?: string;
   nextSectionShortName?: string;
-  defaultTab?: 'learn' | 'bottles';
+  defaultTab?: Tab;
 }
 
 export function SectionTabs({
@@ -20,12 +25,19 @@ export function SectionTabs({
   bottles,
   isComplete,
   guideHtml,
+  classics,
   nextSectionSlug,
   nextSectionShortName,
   defaultTab = 'learn',
 }: SectionTabsProps) {
-  const [tab, setTab] = useState<'learn' | 'bottles'>(defaultTab);
+  const [tab, setTab] = useState<Tab>(defaultTab);
   const logged = bottles.length;
+
+  const tabConfig: { id: Tab; label: string }[] = [
+    { id: 'learn', label: '📖 Learn' },
+    { id: 'classics', label: '🥂 Classics' },
+    { id: 'bottles', label: `🍷 Bottles${logged > 0 ? ` (${logged})` : ''}` },
+  ];
 
   return (
     <div>
@@ -37,19 +49,19 @@ export function SectionTabs({
           borderBottom: '1.5px solid var(--color-border-subtle)',
         }}
       >
-        {(['learn', 'bottles'] as const).map((t) => (
+        {tabConfig.map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="flex-1 py-3.5 text-[14px] font-semibold transition-colors relative"
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className="flex-1 py-3.5 text-[13px] font-semibold transition-colors relative"
             style={{
-              color: tab === t ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              color: tab === t.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
               background: 'transparent',
               border: 'none',
             }}
           >
-            {t === 'learn' ? '📖 Learn' : `🍷 My Bottles${logged > 0 ? ` (${logged})` : ''}`}
-            {tab === t && (
+            {t.label}
+            {tab === t.id && (
               <div
                 className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
                 style={{ background: 'var(--color-primary)' }}
@@ -80,19 +92,37 @@ export function SectionTabs({
               Ready to drink?
             </p>
             <p className="text-[13px] mb-4" style={{ color: 'var(--color-text-muted)' }}>
-              Open your first {section.shortName.toLowerCase()} and taste it with your AI sommelier.
+              See classic picks for {section.shortName.toLowerCase()}, or open a bottle and taste it with your AI sommelier.
             </p>
-            <button
-              onClick={() => setTab('bottles')}
-              className="inline-block px-5 py-2.5 rounded-xl text-[14px] font-bold text-white"
-              style={{ background: section.color }}
-            >
-              Open a Bottle →
-            </button>
+            <div className="flex gap-2 justify-center flex-wrap">
+              <button
+                onClick={() => setTab('classics')}
+                className="inline-block px-4 py-2.5 rounded-xl text-[13px] font-bold"
+                style={{
+                  background: 'var(--color-bg-surface)',
+                  color: section.colorDark,
+                  border: `1.5px solid ${section.color}55`,
+                }}
+              >
+                Classic picks →
+              </button>
+              <button
+                onClick={() => setTab('bottles')}
+                className="inline-block px-4 py-2.5 rounded-xl text-[13px] font-bold text-white"
+                style={{ background: section.color }}
+              >
+                Open a Bottle →
+              </button>
+            </div>
           </div>
 
           <style>{guideStyles(section.color)}</style>
         </div>
+      )}
+
+      {/* ── Classics tab ────────────────────────────────────── */}
+      {tab === 'classics' && (
+        <ClassicsList section={section} classics={classics} />
       )}
 
       {/* ── Bottles tab ─────────────────────────────────────── */}
@@ -136,18 +166,26 @@ export function SectionTabs({
             label={logged === 0 ? 'Log your first bottle' : 'Add another bottle'}
           />
 
-          {/* Hint to read guide first */}
+          {/* Hint to read guide first or browse Classics */}
           {logged === 0 && (
             <div
-              className="rounded-xl p-4 flex items-center gap-3"
+              className="rounded-xl p-4 flex items-start gap-3"
               style={{
                 background: 'var(--color-bg-subtle)',
                 border: '1px solid var(--color-border-subtle)',
               }}
             >
-              <span className="text-xl">💡</span>
-              <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-                Read the{' '}
+              <span className="text-xl shrink-0">💡</span>
+              <p className="text-[13px] leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                Not sure what to drink? Browse{' '}
+                <button
+                  onClick={() => setTab('classics')}
+                  className="underline font-semibold"
+                  style={{ color: 'var(--color-primary)' }}
+                >
+                  classic picks
+                </button>{' '}
+                for this section, or read the{' '}
                 <button
                   onClick={() => setTab('learn')}
                   className="underline font-semibold"
@@ -155,7 +193,7 @@ export function SectionTabs({
                 >
                   Learn tab
                 </button>{' '}
-                first — your sommelier will connect what you taste to what you read.
+                first.
               </p>
             </div>
           )}

@@ -12,6 +12,9 @@ interface TastingSessionProps {
   grapes: string[];
   slotIndex: number;
   slotNumber: number;
+  /** Optional initial value for the wine-identification field — used when the
+   *  user lands here from a Classics tab pick so they don't have to retype. */
+  prefill?: string;
 }
 
 interface Message {
@@ -60,13 +63,14 @@ export function TastingSession({
   grapes,
   slotIndex,
   slotNumber,
+  prefill,
 }: TastingSessionProps) {
   const router = useRouter();
 
   // ── Phase 1 ────────────────────────────────────────────
   const [phase, setPhase] = useState<Phase>('identify');
   const [searchState, setSearchState] = useState<SearchState>('idle');
-  const [rawInput, setRawInput] = useState(''); // what user typed
+  const [rawInput, setRawInput] = useState(prefill ?? ''); // what user typed (or prefilled from Classics pick)
   const [identified, setIdentified] = useState<IdentifiedWine | null>(null);
 
   // Final identity (pre-filled or manually edited after confirm)

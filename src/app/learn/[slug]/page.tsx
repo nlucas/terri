@@ -4,6 +4,7 @@ import { join } from 'path';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { SECTION_BY_SLUG, SECTIONS, getSectionProgress } from '@/lib/sections';
+import { getClassicsForSection } from '@/lib/classics';
 import { getUserBottles } from '@/lib/db/queries';
 import { markdownToHtml } from '@/lib/markdown';
 import { AppShell } from '@/components/layout/AppShell';
@@ -44,6 +45,13 @@ export default async function SectionPage({ params, searchParams }: PageProps) {
 
   // Next section (for complete banner)
   const nextSection = SECTIONS[section.id]; // sections are 1-indexed, array is 0-indexed so [id] gives next
+
+  // Classics data for the third tab
+  const classics = getClassicsForSection(section.id);
+
+  // Resolve URL ?tab= param into a typed value
+  const defaultTab: 'learn' | 'classics' | 'bottles' =
+    tab === 'bottles' ? 'bottles' : tab === 'classics' ? 'classics' : 'learn';
 
   return (
     <AppShell>
@@ -95,9 +103,10 @@ export default async function SectionPage({ params, searchParams }: PageProps) {
         bottles={progress.bottles}
         isComplete={progress.isComplete}
         guideHtml={guideHtml}
+        classics={classics}
         nextSectionSlug={nextSection?.slug}
         nextSectionShortName={nextSection?.shortName}
-        defaultTab={tab === 'bottles' ? 'bottles' : 'learn'}
+        defaultTab={defaultTab}
       />
 
     </AppShell>

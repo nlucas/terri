@@ -9,7 +9,7 @@ import { AdHocLogPage } from '@/components/learn/AdHocLogPage';
 import { JournalLogPage } from '@/components/learn/JournalLogPage';
 
 interface PageProps {
-  searchParams: Promise<{ section?: string }>;
+  searchParams: Promise<{ section?: string; prefill?: string }>;
 }
 
 export default async function LogPage({ searchParams }: PageProps) {
@@ -18,7 +18,7 @@ export default async function LogPage({ searchParams }: PageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { section: sectionSlug } = await searchParams;
+  const { section: sectionSlug, prefill } = await searchParams;
 
   // ── Ad-hoc mode: no section chosen yet ─────────────────────────
   if (!sectionSlug) {
@@ -93,6 +93,7 @@ export default async function LogPage({ searchParams }: PageProps) {
           grapes={section.grapes}
           slotIndex={slotIndex}
           slotNumber={slotNumber}
+          prefill={prefill}
         />
 
       </div>
