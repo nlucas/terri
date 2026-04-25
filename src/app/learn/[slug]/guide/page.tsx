@@ -1,8 +1,7 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
 import { SECTION_BY_SLUG, SECTIONS } from '@/lib/sections';
 import { AppShell } from '@/components/layout/AppShell';
 import { markdownToHtml } from '@/lib/markdown';
@@ -20,10 +19,8 @@ export default async function GuidePage({ params }: PageProps) {
   const section = SECTION_BY_SLUG[slug];
   if (!section) notFound();
 
-  // Auth
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  // No auth check needed — the guide is pure curriculum content,
+  // identical for every user.
 
   // Read guide content — file lives at content/ relative to Next.js root
   let html = '';

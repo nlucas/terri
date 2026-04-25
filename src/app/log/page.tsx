@@ -13,9 +13,10 @@ interface PageProps {
 }
 
 export default async function LogPage({ searchParams }: PageProps) {
+  // Middleware ensures a session (anonymous or real). user.id is what
+  // gets used as the bottle owner — either way the user can log freely.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
   const { section: sectionSlug } = await searchParams;
 
@@ -41,8 +42,10 @@ export default async function LogPage({ searchParams }: PageProps) {
   const section = SECTION_BY_SLUG[sectionSlug];
   if (!section) redirect('/log');
 
-  // Auto-assign the next available slot for this section
-  const slotIndex = await getNextSlotIndex(user.id, section.id);
+  // Auto-assign the next available slot for this section. If anonymous
+  // sign-in failed and there's no user, default to slot 0 — the API
+  // will reject the actual save anyway.
+  const slotIndex = user ? await getNextSlotIndex(user.id, section.id) : 0;
   const slotNumber = slotIndex + 1;
 
   return (

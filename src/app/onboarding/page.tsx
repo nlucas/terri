@@ -1,11 +1,9 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
 import { OnboardingSlides } from '@/components/onboarding/OnboardingSlides';
 
-export default async function OnboardingPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
+export default function OnboardingPage() {
+  // Onboarding doesn't require any user data — it's purely about teaching
+  // the new user what the app does. Middleware will have already created
+  // an anonymous session in the background by the time they finish the
+  // slides and start logging bottles.
   return <OnboardingSlides />;
 }

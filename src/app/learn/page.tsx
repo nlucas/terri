@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
@@ -10,16 +9,20 @@ import { OnboardingGate } from '@/components/onboarding/OnboardingGate';
 import { SECTIONS, isSectionUnlocked, getSectionProgress } from '@/lib/sections';
 
 export default async function LearnPage() {
-  // Auth check
+  // Middleware ensures every visitor has a session (anonymous or real).
+  // We still fetch the user to scope queries by user.id.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
-  // Real data from DB
-  const [bottles, completedSections] = await Promise.all([
-    getUserBottles(user.id),
-    getCompletedSections(user.id),
-  ]);
+  // Defensive: if anonymous sign-in was disabled in Supabase and the
+  // visitor truly has no session, render an empty state rather than
+  // crashing. Bottles list is just empty.
+  const [bottles, completedSections] = user
+    ? await Promise.all([
+        getUserBottles(user.id),
+        getCompletedSections(user.id),
+      ])
+    : [[], [] as number[]];
 
   const foundationalComplete = completedSections.length === 6;
 
@@ -79,16 +82,19 @@ export default async function LearnPage() {
   );
 }
 
-function LearnHeader({ user, completedCount }: { user: User; completedCount: number }) {
+function LearnHeader({ user, completedCount }: { user: User | null; completedCount: number }) {
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? 'Good morning' :
     hour < 17 ? 'Good afternoon' :
                 'Good evening';
 
-  const firstName = user.user_metadata?.full_name?.split(' ')[0]
-    || user.email?.split('@')[0]
-    || 'there';
+  // Anonymous users have no name or email. Rather than show an awkward
+  // placeholder ("Good evening, there."), we drop the name line entirely
+  // for guests — the eyebrow + tagline carry the warmth on their own.
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0]
+    || user?.email?.split('@')[0]
+    || null;
 
   const encouragement =
     completedCount === 0 ? 'Your palate is waiting.' :
@@ -123,7 +129,7 @@ function LearnHeader({ user, completedCount }: { user: User; completedCount: num
           className="fraunces-display font-bold leading-tight"
           style={{ fontSize: 30, color: 'white' }}
         >
-          {firstName}.
+          {firstName ? `${firstName}.` : 'Welcome.'}
         </h1>
         <p
           className="text-[13px] mt-1 fraunces-italic"

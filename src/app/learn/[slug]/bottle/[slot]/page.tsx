@@ -51,10 +51,11 @@ export default async function BottleDetailPage({ params }: PageProps) {
   const section = SECTION_BY_SLUG[slug];
   if (!section) notFound();
 
-  // Auth
+  // Middleware ensures a session. Bottle ownership is enforced inside
+  // getBottleById (it filters by user.id).
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  if (!user) redirect(`/learn/${slug}`);
 
   // Fetch this specific bottle by UUID
   const bottle = await getBottleById(bottleId, user.id);

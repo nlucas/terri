@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getUserBottles, getCompletedSections, getProfile } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
@@ -6,15 +5,18 @@ import { ProfileView } from '@/components/profile/ProfileView';
 import type { LoggedBottle, SectionId } from '@/types';
 
 export default async function ProfilePage() {
+  // Middleware ensures a session. Anonymous users have user.is_anonymous = true
+  // and no email; we hand that down to ProfileView so it can show the right CTA.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
-  const [rawBottles, completedSections, profile] = await Promise.all([
-    getUserBottles(user.id),
-    getCompletedSections(user.id),
-    getProfile(user.id),
-  ]);
+  const [rawBottles, completedSections, profile] = user
+    ? await Promise.all([
+        getUserBottles(user.id),
+        getCompletedSections(user.id),
+        getProfile(user.id),
+      ])
+    : [[], [] as number[], null];
 
   const bottles: LoggedBottle[] = rawBottles.map((b) => ({
     id: b.id,
@@ -43,10 +45,11 @@ export default async function ProfilePage() {
   )];
 
   const profileData = {
-    name: profile?.name ?? user.user_metadata?.full_name ?? null,
-    email: user.email ?? '',
+    name: profile?.name ?? user?.user_metadata?.full_name ?? null,
+    email: user?.email ?? '',
     avatarUrl: profile?.avatarUrl ?? null,
-    createdAt: user.created_at ?? new Date().toISOString(),
+    createdAt: user?.created_at ?? new Date().toISOString(),
+    isAnonymous: user?.is_anonymous ?? true,
     bottles,
     completedSections,
     uniqueCountries,

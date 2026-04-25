@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
@@ -12,8 +12,22 @@ export function LoginForm({ dark = false }: { dark?: boolean }) {
   const [mode, setMode] = useState<Mode>('password');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // null while we're still figuring out who they are.
+  const [isAnonymous, setIsAnonymous] = useState<boolean | null>(null);
   const router = useRouter();
-  const supabase = createClient();
+  // Memoize so the effect's dep array is stable across renders.
+  const supabase = useMemo(() => createClient(), []);
+
+  // Decide once on mount whether this is an "upgrade my anonymous
+  // account" flow or a "sign in to an existing account" flow. The two
+  // require different Supabase calls.
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (active) setIsAnonymous(user?.is_anonymous ?? false);
+    });
+    return () => { active = false; };
+  }, [supabase]);
 
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -21,16 +35,35 @@ export function LoginForm({ dark = false }: { dark?: boolean }) {
     setLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password.trim(),
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
+    if (isAnonymous) {
+      // Convert anonymous account → real account by attaching email +
+      // password. The user.id stays the same, so all of their bottles
+      // remain attached to them.
+      const { error } = await supabase.auth.updateUser({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        // Supabase sends a confirmation email. Tell the user.
+        setMode('sent');
+        setLoading(false);
+      }
     } else {
-      router.push('/learn');
+      // Existing real account — normal sign in.
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        router.push('/learn');
+        router.refresh();
+      }
     }
   }
 
@@ -40,26 +73,66 @@ export function LoginForm({ dark = false }: { dark?: boolean }) {
     setLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-
-    if (error) {
-      setError(error.message);
+    if (isAnonymous) {
+      // Anonymous → real via email confirmation. Same user.id is kept.
+      const { error } = await supabase.auth.updateUser({
+        email: email.trim(),
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setMode('sent');
+      }
     } else {
-      setMode('sent');
+      // Real account — magic-link sign-in.
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setMode('sent');
+      }
     }
     setLoading(false);
   }
 
   async function handleGoogle() {
     setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    setError('');
+
+    if (isAnonymous) {
+      // Attach a Google identity to the existing anonymous account so
+      // bottles are preserved. Requires Manual Linking to be enabled in
+      // Supabase (Authentication → Settings → Manual Linking).
+      const { error } = await supabase.auth.linkIdentity({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    }
   }
+
+  // Copy is slightly different depending on whether the user is
+  // converting their anonymous account or signing into an existing one.
+  const ctaLabel = isAnonymous ? 'Save my progress' : 'Sign in';
+  const sentTitle = isAnonymous ? 'Almost there' : 'Check your email';
+  const sentBody = isAnonymous
+    ? 'Click the link we just sent to confirm and back up all your bottles.'
+    : 'Click it to sign in.';
 
   if (mode === 'sent') {
     return (
@@ -69,12 +142,12 @@ export function LoginForm({ dark = false }: { dark?: boolean }) {
           className="fraunces-display font-bold text-[22px] mb-2"
           style={{ color: dark ? 'white' : 'var(--color-text-primary)' }}
         >
-          Check your email
+          {sentTitle}
         </h2>
         <p className="text-[14px]" style={{ color: dark ? 'rgba(255,255,255,0.5)' : 'var(--color-text-muted)' }}>
-          We sent a magic link to{' '}
+          We sent a link to{' '}
           <strong style={{ color: dark ? 'rgba(255,255,255,0.8)' : 'var(--color-text-secondary)' }}>{email}</strong>.
-          Click it to sign in.
+          {' '}{sentBody}
         </p>
       </div>
     );
@@ -104,10 +177,12 @@ export function LoginForm({ dark = false }: { dark?: boolean }) {
             className="fraunces-display font-bold text-[24px] mb-1"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            Sign in
+            {isAnonymous ? 'Save your progress' : 'Sign in'}
           </h2>
           <p className="text-[13px] mb-6" style={{ color: 'var(--color-text-muted)' }}>
-            Your progress saves across devices.
+            {isAnonymous
+              ? 'Back up your bottles and sync across devices.'
+              : 'Your progress saves across devices.'}
           </p>
         </>
       )}
@@ -177,7 +252,7 @@ export function LoginForm({ dark = false }: { dark?: boolean }) {
               background: 'var(--color-primary)',
             }}
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Working…' : ctaLabel}
           </button>
           <button
             type="button"

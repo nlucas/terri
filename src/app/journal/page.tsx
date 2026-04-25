@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getUserBottles, getCompletedSections } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
@@ -6,14 +5,17 @@ import { JournalView } from '@/components/journal/JournalView';
 import type { LoggedBottle, SectionId } from '@/types';
 
 export default async function JournalPage() {
+  // Middleware ensures a session (anonymous or real). Defensive null
+  // fallback in case anonymous sign-in is disabled in Supabase.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
-  const [rawBottles, completedSections] = await Promise.all([
-    getUserBottles(user.id),
-    getCompletedSections(user.id),
-  ]);
+  const [rawBottles, completedSections] = user
+    ? await Promise.all([
+        getUserBottles(user.id),
+        getCompletedSections(user.id),
+      ])
+    : [[], [] as number[]];
 
   // Serialize for client (dates → strings, normalise types)
   const bottles: LoggedBottle[] = rawBottles.map((b) => ({

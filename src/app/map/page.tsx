@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getUserBottles } from '@/lib/db/queries';
 import { AppShell } from '@/components/layout/AppShell';
@@ -6,11 +5,12 @@ import { MapView } from '@/components/map/MapView';
 import type { LoggedBottle, SectionId } from '@/types';
 
 export default async function MapPage() {
+  // Middleware ensures a session (anonymous or real). Empty bottles
+  // list is the right state if anonymous sign-in failed.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
 
-  const rawBottles = await getUserBottles(user.id);
+  const rawBottles = user ? await getUserBottles(user.id) : [];
 
   const bottles: LoggedBottle[] = rawBottles.map((b) => ({
     id: b.id,

@@ -17,7 +17,7 @@ export default function LoginPage() {
       {/* ── Hero wordmark ──────────────────────────────────────── */}
       <div className="relative z-10 text-center mb-10 login-fade-up">
         {/* Eyebrow */}
-        <p className="login-eyebrow">Your AI Sommelier</p>
+        <p className="login-eyebrow">Save your progress</p>
 
         {/* The name — big, confident, warm */}
         <h1 className="login-wordmark fraunces-display">Terri</h1>
@@ -27,7 +27,7 @@ export default function LoginPage() {
 
         {/* Tagline */}
         <p className="login-tagline fraunces-italic">
-          18 bottles. Your whole palate.
+          Back up your bottles. Sync across devices.
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export default function LoginPage() {
         className="relative z-10 mt-8 text-[11px] text-center login-fade-up-delay"
         style={{ color: 'rgba(255,255,255,0.18)', maxWidth: 280 }}
       >
-        By continuing, you agree to learn something new about wine.
+        Your bottles stay attached to your account.
       </p>
     </div>
   );

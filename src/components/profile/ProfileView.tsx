@@ -16,6 +16,8 @@ interface ProfileData {
   email: string;
   avatarUrl: string | null;
   createdAt: string;
+  /** True for anonymous (no email) users. They see a "Save your progress" CTA. */
+  isAnonymous: boolean;
   bottles: LoggedBottle[];
   completedSections: number[];
   uniqueCountries: string[];
@@ -179,7 +181,7 @@ function SectionGrid({
   );
 }
 
-// ─── Sign Out Button ──────────────────────────────────────────────
+// ─── Sign Out Button (for real accounts) ──────────────────────────
 
 function SignOutButton() {
   const router = useRouter();
@@ -192,7 +194,10 @@ function SignOutButton() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     await supabase.auth.signOut();
-    router.push('/login');
+    // After sign-out, middleware will create a fresh anonymous session
+    // on next nav, so just bounce them back to /learn.
+    router.push('/learn');
+    router.refresh();
   }
 
   return (
@@ -216,6 +221,41 @@ function SignOutButton() {
       </span>
       {!loading && <span style={{ color: 'var(--color-text-muted)', fontSize: 18 }}>›</span>}
     </button>
+  );
+}
+
+// ─── Save Your Progress CTA (for anonymous users) ─────────────────
+
+function SaveProgressCTA({ bottleCount }: { bottleCount: number }) {
+  return (
+    <Link
+      href="/login"
+      className="block rounded-2xl p-5 mb-6 transition-transform active:scale-[0.99]"
+      style={{
+        background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+        boxShadow: '0 8px 24px rgba(124,58,82,0.28)',
+      }}
+    >
+      <div className="flex items-center gap-3 mb-2">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-[20px] shrink-0"
+          style={{ background: 'rgba(255,255,255,0.18)' }}
+        >
+          ☁️
+        </div>
+        <div className="flex-1">
+          <p className="fraunces-card font-bold text-[16px] text-white leading-tight">
+            Save your progress
+          </p>
+          <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            {bottleCount > 0
+              ? `Back up your ${bottleCount} bottle${bottleCount === 1 ? '' : 's'} & sync across devices`
+              : 'Back up your bottles & sync across devices'}
+          </p>
+        </div>
+        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 18 }}>›</span>
+      </div>
+    </Link>
   );
 }
 
@@ -265,9 +305,11 @@ export function ProfileView({ data }: { data: ProfileData }) {
     setIntroComplete(localStorage.getItem('terri_intro_complete') === '1');
   }, []);
 
-  const { name, email, createdAt, bottles, completedSections, uniqueCountries } = data;
+  const { name, email, createdAt, isAnonymous, bottles, completedSections, uniqueCountries } = data;
 
-  const displayName = name || email.split('@')[0];
+  // For anonymous users (no email), show "Guest" rather than an empty string.
+  const emailHandle = email ? email.split('@')[0] : '';
+  const displayName = name || emailHandle || (isAnonymous ? 'Guest' : 'You');
   const bottleCount = bottles.length;
 
   // Avg rating
@@ -295,7 +337,7 @@ export function ProfileView({ data }: { data: ProfileData }) {
           background: 'linear-gradient(175deg, #2C1A10 0%, #1C0D08 100%)',
         }}
       >
-        <InitialsAvatar name={name} email={email} />
+        <InitialsAvatar name={name} email={email || displayName} />
 
         <motion.h1
           initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
@@ -303,13 +345,28 @@ export function ProfileView({ data }: { data: ProfileData }) {
         >
           {displayName}
         </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          className="text-[13px] mb-1"
-          style={{ color: 'rgba(255,255,255,0.40)' }}
-        >
-          {email}
-        </motion.p>
+        {email && (
+          <motion.p
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            className="text-[13px] mb-1"
+            style={{ color: 'rgba(255,255,255,0.40)' }}
+          >
+            {email}
+          </motion.p>
+        )}
+        {isAnonymous && (
+          <motion.p
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            className="text-[12px] mb-1 px-3 py-1 rounded-full"
+            style={{
+              color: 'rgba(255,255,255,0.55)',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.10)',
+            }}
+          >
+            Browsing as guest
+          </motion.p>
+        )}
         <motion.p
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
           className="text-[12px]"
@@ -321,6 +378,13 @@ export function ProfileView({ data }: { data: ProfileData }) {
 
       {/* ── Content ───────────────────────────────────────────── */}
       <div className="px-4 pb-8">
+
+        {/* Save-your-progress CTA — only shown to anonymous users */}
+        {isAnonymous && (
+          <div className="mt-4">
+            <SaveProgressCTA bottleCount={bottleCount} />
+          </div>
+        )}
 
         {/* Progress rings */}
         <div
@@ -505,8 +569,31 @@ export function ProfileView({ data }: { data: ProfileData }) {
             </p>
           </div>
 
-          {/* Sign out */}
-          <SignOutButton />
+          {/* Sign out — only for real (non-anonymous) accounts */}
+          {!isAnonymous && <SignOutButton />}
+
+          {/* Save your progress — for anonymous users in the settings list */}
+          {isAnonymous && (
+            <Link
+              href="/login"
+              className="w-full flex items-center gap-3 px-4 py-4 text-left transition-colors active:opacity-70"
+              style={{ background: 'var(--color-bg-surface)' }}
+            >
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] shrink-0"
+                style={{ background: 'rgba(124,58,82,0.10)' }}
+              >
+                ☁️
+              </div>
+              <span
+                className="flex-1 text-[15px] font-semibold"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                Save Your Progress
+              </span>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: 18 }}>›</span>
+            </Link>
+          )}
 
           {/* Reset Journey */}
           <div style={{ borderTop: '1px solid var(--color-border-subtle)' }}>

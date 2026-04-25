@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import Link from 'next/link';
@@ -25,13 +25,11 @@ export default async function SectionPage({ params, searchParams }: PageProps) {
   const section = SECTION_BY_SLUG[slug];
   if (!section) notFound();
 
-  // Auth
+  // Middleware ensures a session (anonymous or real). If anonymous
+  // sign-in failed, render the section with an empty bottles list.
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  // Real data
-  const bottles = await getUserBottles(user.id);
+  const bottles = user ? await getUserBottles(user.id) : [];
   const progress = getSectionProgress(section.id, bottles);
 
   // Guide content
